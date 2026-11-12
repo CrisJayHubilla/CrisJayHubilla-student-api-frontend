@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Attendance Portal</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 20px; }
+        .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
+        .card-info { flex: 1; line-height: 1.5; }
+        .card-info .k { color: #555; }
+        .card-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        label { display: block; font-size: 13px; color: #555; margin-bottom: 3px; }
+        input, button { display: block; width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
+        button { width: auto; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+        #editFormContainer { border: 1px solid #ddd; padding: 15px; margin-top: 20px; background: #f9f9f9; border-radius: 5px; display: none; }
+        .btn-delete { background: #b30000; color: #fff; border: none; }
+        .btn-save { background: #28a745; color: #fff; border: none; }
+        .btn-cancel { background: #6c757d; color: #fff; border: none; }
+        #msg { margin-bottom: 10px; padding: 8px; border-radius: 4px; display: none; }
+        #msg.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
+        #msg.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
+    </style>
+</head>
+<body>
+    <h2>Lab Attendance</h2>
+    <div id="msg"></div>
+
+    <h3>Add New Record</h3>
+    <form id="addForm">
+        <div id="addFields" class="grid"></div>
+        <button type="submit">Submit to Database</button>
+    </form>
+
+    <h3>Database Records</h3>
+    <div id="recordsContainer">Loading...</div>
+
+    <div id="editFormContainer">
+        <h3>Edit Record</h3>
+        <form id="editForm">
+            <input type="hidden" id="eId">
+            <div id="editFields" class="grid"></div>
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn-save">Save</button>
+                <button type="button" id="btnCancelEdit" class="btn-cancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // LOCAL DEV uses localhost; deployed site uses your Vercel backend.
+        // >>> Replace YOUR-BACKEND with your real backend domain <<<
+        const API_BASE_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:3000/api/attendance'
+            : 'https://YOUR-BACKEND.vercel.app/api/attendance';
+
+        // Fields come from the records already in MongoDB (nothing is hard-coded).
+        const HIDDEN = ['_id', '__v', 'createdAt', 'updatedAt'];
+        let fields = [];
+        let records = [];
+
+        const msg = document.getElementById('msg');
+        const recordsContainer = document.getElementById('recordsContainer');
+        const editFormContainer = document.getElementById('editFormContainer');
+        const addFieldsBox = document.getElementById('addFields');
+        const editFieldsBox = document.getElementById('editFields');
+
+        function showMsg(text, type) {
+            msg.textContent = text;
+            msg.className = type === 'error' ? 'error' : 'success';
+        }
+
+        function fmt(v) {
+            if (v === null || v === undefined) return '';
+            if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T00:00:00(\.000)?Z$/.test(v)) return v.slice(0, 10);
+            return typeof v === 'object' ? JSON.stringify(v) : String(v);
+        }
+
+        function buildFields(box, values) {
+            box.innerHTML = '';
+            fields.forEach((f, i) => {
+                const wrap = document.createElement('div');
+                const label = document.createElement('label');
+                label.textContent = f;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.dataset.field = f;
+                input.value = values ? fmt(values[f]) : '';
+                wrap.appendChild(label);
+                wrap.appendChild(input);
+                box.appendChild(wrap);
+            });
+        }
+
+        function readFields(box) {
+            const body = {};
+            box.querySelectorAll('input').forEach(i => { body[i.dataset.field] = i.value; });
+            return body;
+        }
+
+        async function api(url, options) {
+            const res = await fetch(url, options);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+            return data;
+        }
+
+        async function loadRecords() {
+            try {
+                records = await api(API_BASE_URL);
+                recordsContainer.innerHTML = '';
+
+                const seen = [];
+                records.forEach(r => Object.keys(r).forEach(k => {
+                    if (!HIDDEN.includes(k) && !seen.includes(k)) seen.push(k);
+                }));
+                if (seen.length) fields = seen;
+                buildFields(addFieldsBox, null);
+
+                if (!records.length) {
+                    recordsContainer.innerHTML = '<p>No records found.</p>';
+                    return;
+                }
+
+                records.forEach(record => {
+                    const div = document.createElement('div');
+                    div.className = 'card';
+
+                    const info = document.createElement('div');
+                    info.className = 'card-info';
+                    fields.forEach(f => {
+                        const line = document.createElement('div');
+                        const k = document.createElement('span');
+                        k.className = 'k';
+                        k.textContent = f + ': ';
+                        line.appendChild(k);
+                        line.appendChild(document.createTextNode(fmt(record[f])));
+                        info.appendChild(line);
+                    });
+
+                    const actions = document.createElement('div');
+                    actions.className = 'card-actions';
+                    const edit = document.createElement('button');
+                    edit.textContent = 'Edit';
+                    edit.addEventListener('click', () => startEdit(record));
+                    const del = document.createElement('button');
+                    del.textContent = 'Delete';
+                    del.className = 'btn-delete';
+                    del.addEventListener('click', () => deleteRecord(record._id));
+                    actions.appendChild(edit);
+                    actions.appendChild(del);
+
+                    div.appendChild(info);
+                    div.appendChild(actions);
+                    recordsContainer.appendChild(div);
+                });
+            } catch (error) {
+                recordsContainer.textContent = 'Error loading records: ' + error.message;
+            }
+        }
+
+        function startEdit(record) {
+            document.getElementById('eId').value = record._id;
+            buildFields(editFieldsBox, record);
+            editFormContainer.style.display = 'block';
+            editFormContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.getElementById('btnCancelEdit').addEventListener('click', () => {
+            editFormContainer.style.display = 'none';
+        });
+
+        document.getElementById('addForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                await api(API_BASE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(readFields(addFieldsBox)),
+                });
+                showMsg('Record added.', 'success');
+                loadRecords();
+            } catch (error) {
+                showMsg('Failed to add record: ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('eId').value;
+            try {
+                await api(`${API_BASE_URL}?id=${encodeURIComponent(id)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(readFields(editFieldsBox)),
+                });
+                editFormContainer.style.display = 'none';
+                showMsg('Record updated.', 'success');
+                loadRecords();
+            } catch (error) {
+                showMsg('Failed to update record: ' + error.message, 'error');
+            }
+        });
+
+        async function deleteRecord(id) {
+            if (!confirm('Delete this record?')) return;
+            try {
+                await api(`${API_BASE_URL}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+                showMsg('Record deleted.', 'success');
+                loadRecords();
+            } catch (error) {
+                showMsg('Failed to delete record: ' + error.message, 'error');
+            }
+        }
+
+        loadRecords();
+    </script>
+</body>
+</html>
