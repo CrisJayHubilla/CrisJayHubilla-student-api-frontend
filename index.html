@@ -51,9 +51,9 @@
     <script>
         // LOCAL DEV uses localhost; deployed site uses your Vercel backend.
         // >>> Replace YOUR-BACKEND with your real backend domain <<<
-        const API_BASE_URL = 'crisjayhubilla-student-api-frontend.vercel.app/api/attendance';
-          
-            : 'CrisJayHubilla-student-api-frontend/api/attendance';
+        const API_BASE_URL = (location.hostname === 'localhost' || ...)
+    ? 'http://localhost:3000/api/attendance'
+    : 'crisjayhubilla-student-api-frontend.vercel.app/api/attendance';
 
         // Fields come from the records already in MongoDB (nothing is hard-coded).
         const HIDDEN = ['_id', '__v', 'createdAt', 'updatedAt'];
