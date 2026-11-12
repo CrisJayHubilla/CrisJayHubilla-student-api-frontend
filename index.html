@@ -1,218 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab Attendance Portal</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 20px; }
-        .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
-        .card-info { flex: 1; line-height: 1.5; }
-        .card-info .k { color: #555; }
-        .card-actions { display: flex; gap: 8px; flex-shrink: 0; }
-        label { display: block; font-size: 13px; color: #555; margin-bottom: 3px; }
-        input, button { display: block; width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
-        button { width: auto; cursor: pointer; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
-        #editFormContainer { border: 1px solid #ddd; padding: 15px; margin-top: 20px; background: #f9f9f9; border-radius: 5px; display: none; }
-        .btn-delete { background: #b30000; color: #fff; border: none; }
-        .btn-save { background: #28a745; color: #fff; border: none; }
-        .btn-cancel { background: #6c757d; color: #fff; border: none; }
-        #msg { margin-bottom: 10px; padding: 8px; border-radius: 4px; display: none; }
-        #msg.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
-        #msg.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student Portal</title>
+<style>
+:root{--ink:#16213A;--paper:#F2F4F8;--card:#fff;--line:#D9DEE8;--muted:#5B667D;--blue:#2457D6;--leaf:#1E7A5A;--rust:#B4452B}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink);display:flex;min-height:100vh}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:700;margin:0}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+aside{width:230px;background:var(--ink);color:#fff;padding:28px 20px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+aside .brand{font-family:Georgia,serif;font-size:1.35rem;margin-bottom:24px}
+aside .brand small{display:block;font:0.78rem system-ui,sans-serif;color:#9fb0d4;margin-top:4px}
+.nav{background:none;border:0;color:#c9d4ee;text-align:left;padding:10px 12px;border-radius:6px;cursor:pointer}
+.nav:hover{background:#243357}
+.nav.active{background:#fff;color:var(--ink);font-weight:600}
+aside .spacer{flex:1}
+main{flex:1;padding:36px 40px;max-width:1000px}
+.btn{border:0;border-radius:6px;padding:10px 16px;cursor:pointer;background:var(--blue);color:#fff;font-weight:600}
+.btn:hover{background:#1b46b0}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--paper)}
+.btn.sm{padding:6px 10px;font-size:.85rem}
+.btn.del{background:#fff;color:var(--rust);border:1px solid #e3b8ad}
+.btn.del:hover{background:#fbeee9}
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.banner{background:#FFF4D6;border:1px solid #ecd48a;padding:10px 14px;border-radius:6px;margin-bottom:20px;font-size:.92rem}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:22px 0}
+.stat{padding:18px}
+.stat b{font-family:Georgia,serif;font-size:2rem;display:block}
+.stat span{color:var(--muted);font-size:.9rem}
+.recent{padding:6px 18px 12px}
+.recent h3{padding:14px 0 8px;font-size:1.1rem}
+.row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.row small{color:var(--muted)}
+.tools{display:flex;gap:10px;margin-bottom:14px}
+.tools input{flex:1;max-width:340px}
+input,select{width:100%;padding:9px 10px;border:1px solid #bcc5d6;border-radius:6px;background:#fff}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line)}
+th{font-size:.85rem;color:var(--muted);font-weight:600;background:#fafbfd}
+tr:last-child td{border-bottom:0}
+td.act{display:flex;gap:6px;justify-content:flex-end}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty p{margin:0 0 14px}
+dialog{border:0;border-radius:10px;padding:0;width:min(440px,92vw);box-shadow:0 20px 50px rgba(22,33,58,.35)}
+dialog::backdrop{background:rgba(22,33,58,.5)}
+dialog form{padding:24px;display:grid;gap:14px}
+label{display:grid;gap:5px;font-size:.9rem;font-weight:600}
+.btns{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--leaf);color:#fff;padding:12px 18px;border-radius:6px;opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+.toast.err{background:var(--rust)}
+@media(max-width:760px){
+  body{flex-direction:column}
+  aside{width:100%;height:auto;position:static;flex-direction:row;align-items:center;padding:12px;flex-wrap:wrap}
+  aside .brand{margin:0 auto 0 0;font-size:1.1rem}
+  aside .brand small,aside .spacer{display:none}
+  main{padding:22px 16px}
+}
+</style>
 </head>
 <body>
-    <h2>Lab Attendance</h2>
-    <div id="msg"></div>
 
-    <h3>Add New Record</h3>
-    <form id="addForm">
-        <div id="addFields" class="grid"></div>
-        <button type="submit">Submit to Database</button>
-    </form>
+<aside>
+  <div class="brand">Student Portal<small>Records office</small></div>
+  <button class="nav active" data-view="home">Home</button>
+  <button class="nav" data-view="records">Student records</button>
+  <div class="spacer"></div>
+  <button class="btn" id="navAdd">Add student</button>
+</aside>
 
-    <h3>Database Records</h3>
-    <div id="recordsContainer">Loading...</div>
+<main>
+  <div id="banner"></div>
+  <section id="home">
+    <div class="head"><h1>Welcome back</h1></div>
+    <p style="color:var(--muted);margin:0">Look up, add, update and remove student records from one place.</p>
+    <div class="stats" id="stats"></div>
+    <div class="panel recent"><h3>Recently added</h3><div id="recent"></div></div>
+  </section>
 
-    <div id="editFormContainer">
-        <h3>Edit Record</h3>
-        <form id="editForm">
-            <input type="hidden" id="eId">
-            <div id="editFields" class="grid"></div>
-            <div style="display:flex;gap:10px;">
-                <button type="submit" class="btn-save">Save</button>
-                <button type="button" id="btnCancelEdit" class="btn-cancel">Cancel</button>
-            </div>
-        </form>
+  <section id="records" hidden>
+    <div class="head"><h1>Student records</h1><button class="btn" id="addBtn">Add student</button></div>
+    <div class="tools"><input id="search" type="search" placeholder="Search by name, ID or course" aria-label="Search records"></div>
+    <div class="panel"><div class="tablewrap" id="list"></div></div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <form id="form" method="dialog">
+    <h2 id="dlgTitle">Add student</h2>
+    <label>Full name<input id="f_name" required maxlength="80"></label>
+    <label>Student ID<input id="f_studentId" required maxlength="30" placeholder="e.g. 2026-0142"></label>
+    <label>Course<input id="f_course" required maxlength="60" placeholder="e.g. BS Computer Science"></label>
+    <label>Year level
+      <select id="f_year"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    </label>
+    <label>Email<input id="f_email" type="email" required maxlength="80"></label>
+    <div class="btns">
+      <button type="button" class="btn ghost" id="cancel">Cancel</button>
+      <button type="submit" class="btn" id="saveBtn">Save student</button>
     </div>
+  </form>
+</dialog>
 
-    <script>
-        // LOCAL DEV uses localhost; deployed site uses your Vercel backend.
-        // >>> Replace YOUR-BACKEND with your real backend domain <<<
-        const API_BASE_URL = : 'https://cris-jay-hubilla-student-api-backen.vercel.app/api/attendance';
+<div class="toast" id="toast" role="status"></div>
 
-        // Fields come from the records already in MongoDB (nothing is hard-coded).
-        const HIDDEN = ['_id', '__v', 'createdAt', 'updatedAt'];
-        let fields = [];
-        let records = [];
+<script>
+// 1) Put your BACKEND Vercel URL here (the one that ends with /api)
+const API_URL = 'https://YOUR-BACKEND.vercel.app/api';
 
-        const msg = document.getElementById('msg');
-        const recordsContainer = document.getElementById('recordsContainer');
-        const editFormContainer = document.getElementById('editFormContainer');
-        const addFieldsBox = document.getElementById('addFields');
-        const editFieldsBox = document.getElementById('editFields');
+const SAMPLE = [
+  {name:'Maria Santos',studentId:'2026-0101',course:'BS Computer Science',year:3,email:'maria.santos@school.edu'},
+  {name:'Jose Reyes',studentId:'2026-0102',course:'BS Information Technology',year:2,email:'jose.reyes@school.edu'},
+  {name:'Angela Cruz',studentId:'2026-0103',course:'BS Nursing',year:1,email:'angela.cruz@school.edu'},
+  {name:'Paolo Garcia',studentId:'2026-0104',course:'BS Civil Engineering',year:4,email:'paolo.garcia@school.edu'},
+  {name:'Bianca Lim',studentId:'2026-0105',course:'BS Accountancy',year:2,email:'bianca.lim@school.edu'},
+  {name:'Miguel Torres',studentId:'2026-0106',course:'BS Computer Science',year:1,email:'miguel.torres@school.edu'}
+];
 
-        function showMsg(text, type) {
-            msg.textContent = text;
-            msg.className = type === 'error' ? 'error' : 'success';
-        }
+let records = [], demo = false, editingId = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-        function fmt(v) {
-            if (v === null || v === undefined) return '';
-            if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T00:00:00(\.000)?Z$/.test(v)) return v.slice(0, 10);
-            return typeof v === 'object' ? JSON.stringify(v) : String(v);
-        }
+async function api(path = '', opts = {}) {
+  const res = await fetch(API_URL + path, {headers:{'Content-Type':'application/json'}, ...opts});
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
 
-        function buildFields(box, values) {
-            box.innerHTML = '';
-            fields.forEach((f, i) => {
-                const wrap = document.createElement('div');
-                const label = document.createElement('label');
-                label.textContent = f;
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.dataset.field = f;
-                input.value = values ? fmt(values[f]) : '';
-                wrap.appendChild(label);
-                wrap.appendChild(input);
-                box.appendChild(wrap);
-            });
-        }
+function toast(msg, err) {
+  const t = $('toast'); t.textContent = msg; t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = 'toast', 2600);
+}
 
-        function readFields(box) {
-            const body = {};
-            box.querySelectorAll('input').forEach(i => { body[i.dataset.field] = i.value; });
-            return body;
-        }
+async function load() {
+  try {
+    if (API_URL.includes('YOUR-BACKEND')) throw new Error('API URL not set');
+    records = await api();
+    demo = false;
+  } catch (e) {
+    console.error('Could not reach the API:', e);
+    demo = true;
+    records = SAMPLE.map((r, i) => ({...r, _id: 'demo' + i}));
+  }
+  render();
+}
 
-        async function api(url, options) {
-            const res = await fetch(url, options);
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
-            return data;
-        }
+function render() {
+  $('banner').innerHTML = demo
+    ? '<div class="banner">Showing sample data. The backend could not be reached, so changes will not be saved. Check <code>API_URL</code> in index.html.</div>' : '';
 
-        async function loadRecords() {
-            try {
-                records = await api(API_BASE_URL);
-                recordsContainer.innerHTML = '';
+  const courses = new Set(records.map(r => r.course)).size;
+  $('stats').innerHTML =
+    `<div class="panel stat"><b>${records.length}</b><span>Students enrolled</span></div>
+     <div class="panel stat"><b>${courses}</b><span>Courses represented</span></div>
+     <div class="panel stat"><b>${records.filter(r => +r.year === 1).length}</b><span>First-year students</span></div>`;
 
-                const seen = [];
-                records.forEach(r => Object.keys(r).forEach(k => {
-                    if (!HIDDEN.includes(k) && !seen.includes(k)) seen.push(k);
-                }));
-                if (seen.length) fields = seen;
-                buildFields(addFieldsBox, null);
+  const recent = records.slice(-3).reverse();
+  $('recent').innerHTML = recent.length
+    ? recent.map(r => `<div class="row"><span>${esc(r.name)}<br><small>${esc(r.course)}</small></span><small>${esc(r.studentId)}</small></div>`).join('')
+    : '<div class="row"><small>No students yet.</small></div>';
 
-                if (!records.length) {
-                    recordsContainer.innerHTML = '<p>No records found.</p>';
-                    return;
-                }
+  renderList();
+}
 
-                records.forEach(record => {
-                    const div = document.createElement('div');
-                    div.className = 'card';
+function renderList() {
+  const q = $('search').value.trim().toLowerCase();
+  const rows = records.filter(r => [r.name, r.studentId, r.course].join(' ').toLowerCase().includes(q));
+  if (!records.length) {
+    $('list').innerHTML = `<div class="empty"><p>No student records yet.</p>
+      <button class="btn" onclick="openForm()">Add student</button>
+      <button class="btn ghost" onclick="seed()">Load sample records</button></div>`;
+    return;
+  }
+  if (!rows.length) { $('list').innerHTML = '<div class="empty"><p>No students match your search.</p></div>'; return; }
+  $('list').innerHTML = `<table><thead><tr><th>Name</th><th>Student ID</th><th>Course</th><th>Year</th><th>Email</th><th></th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.studentId)}</td><td>${esc(r.course)}</td><td>${esc(r.year)}</td><td>${esc(r.email)}</td>
+      <td class="act"><button class="btn ghost sm" onclick="openForm('${esc(r._id)}')">Edit</button>
+      <button class="btn del sm" onclick="removeRec('${esc(r._id)}')">Delete</button></td></tr>`).join('') + '</tbody></table>';
+}
 
-                    const info = document.createElement('div');
-                    info.className = 'card-info';
-                    fields.forEach(f => {
-                        const line = document.createElement('div');
-                        const k = document.createElement('span');
-                        k.className = 'k';
-                        k.textContent = f + ': ';
-                        line.appendChild(k);
-                        line.appendChild(document.createTextNode(fmt(record[f])));
-                        info.appendChild(line);
-                    });
+function show(view) {
+  ['home', 'records'].forEach(v => $(v).hidden = v !== view);
+  document.querySelectorAll('.nav').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+}
 
-                    const actions = document.createElement('div');
-                    actions.className = 'card-actions';
-                    const edit = document.createElement('button');
-                    edit.textContent = 'Edit';
-                    edit.addEventListener('click', () => startEdit(record));
-                    const del = document.createElement('button');
-                    del.textContent = 'Delete';
-                    del.className = 'btn-delete';
-                    del.addEventListener('click', () => deleteRecord(record._id));
-                    actions.appendChild(edit);
-                    actions.appendChild(del);
+function openForm(id) {
+  editingId = id || null;
+  const r = records.find(x => x._id === id) || {};
+  $('dlgTitle').textContent = id ? 'Edit student' : 'Add student';
+  $('f_name').value = r.name || '';
+  $('f_studentId').value = r.studentId || '';
+  $('f_course').value = r.course || '';
+  $('f_year').value = r.year || '1';
+  $('f_email').value = r.email || '';
+  $('dlg').showModal();
+  $('f_name').focus();
+}
 
-                    div.appendChild(info);
-                    div.appendChild(actions);
-                    recordsContainer.appendChild(div);
-                });
-            } catch (error) {
-                recordsContainer.textContent = 'Error loading records: ' + error.message;
-            }
-        }
+async function saveRec(e) {
+  e.preventDefault();
+  const data = {name:$('f_name').value.trim(), studentId:$('f_studentId').value.trim(),
+    course:$('f_course').value.trim(), year:+$('f_year').value, email:$('f_email').value.trim()};
+  try {
+    if (demo) {
+      if (editingId) records = records.map(r => r._id === editingId ? {...r, ...data} : r);
+      else records.push({...data, _id: 'demo' + Date.now()});
+    } else if (editingId) {
+      const upd = await api('/' + editingId, {method:'PUT', body:JSON.stringify(data)});
+      records = records.map(r => r._id === editingId ? upd : r);
+    } else {
+      records.push(await api('', {method:'POST', body:JSON.stringify(data)}));
+    }
+    $('dlg').close();
+    toast(editingId ? 'Changes saved' : 'Student added');
+    render();
+  } catch (err) { console.error(err); toast('Could not save the student', true); }
+}
 
-        function startEdit(record) {
-            document.getElementById('eId').value = record._id;
-            buildFields(editFieldsBox, record);
-            editFormContainer.style.display = 'block';
-            editFormContainer.scrollIntoView({ behavior: 'smooth' });
-        }
+async function removeRec(id) {
+  const r = records.find(x => x._id === id);
+  if (!confirm('Delete ' + r.name + '? This cannot be undone.')) return;
+  try {
+    if (!demo) await api('/' + id, {method:'DELETE'});
+    records = records.filter(x => x._id !== id);
+    toast('Student deleted');
+    render();
+  } catch (err) { console.error(err); toast('Could not delete the student', true); }
+}
 
-        document.getElementById('btnCancelEdit').addEventListener('click', () => {
-            editFormContainer.style.display = 'none';
-        });
+async function seed() {
+  try {
+    for (const s of SAMPLE) records.push(demo ? {...s, _id:'demo' + Math.random()} : await api('', {method:'POST', body:JSON.stringify(s)}));
+    toast('Sample records loaded'); render();
+  } catch (err) { console.error(err); toast('Could not load sample records', true); }
+}
 
-        document.getElementById('addForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            try {
-                await api(API_BASE_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(readFields(addFieldsBox)),
-                });
-                showMsg('Record added.', 'success');
-                loadRecords();
-            } catch (error) {
-                showMsg('Failed to add record: ' + error.message, 'error');
-            }
-        });
-
-        document.getElementById('editForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('eId').value;
-            try {
-                await api(`${API_BASE_URL}?id=${encodeURIComponent(id)}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(readFields(editFieldsBox)),
-                });
-                editFormContainer.style.display = 'none';
-                showMsg('Record updated.', 'success');
-                loadRecords();
-            } catch (error) {
-                showMsg('Failed to update record: ' + error.message, 'error');
-            }
-        });
-
-        async function deleteRecord(id) {
-            if (!confirm('Delete this record?')) return;
-            try {
-                await api(`${API_BASE_URL}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-                showMsg('Record deleted.', 'success');
-                loadRecords();
-            } catch (error) {
-                showMsg('Failed to delete record: ' + error.message, 'error');
-            }
-        }
-
-        loadRecords();
-    </script>
+document.querySelectorAll('.nav').forEach(b => b.addEventListener('click', () => show(b.dataset.view)));
+$('navAdd').onclick = $('addBtn').onclick = () => openForm();
+$('cancel').onclick = () => $('dlg').close();
+$('form').addEventListener('submit', saveRec);
+$('search').addEventListener('input', renderList);
+load();
+</script>
 </body>
 </html>
